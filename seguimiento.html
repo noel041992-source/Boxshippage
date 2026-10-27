@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Seguimiento de Paquetes — Boxship PTY</title>
+<meta name="description" content="Consulta el estado de tu paquete en tiempo real. Rastreo seguro de carga aérea y marítima.">
+<link rel="canonical" href="https://boxshippty.com/seguimiento.html">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="site.css">
+<link rel="stylesheet" href="style.css">
+<!-- Script de Turnstile -->
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" defer></script>
+</head>
+<body class="min-h-screen flex flex-col">
+<header class="sticky top-0 z-50 bg-white border-b border-border shadow-sm"><div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"><div class="flex items-center justify-between h-16 md:h-20"><a class="flex items-center shrink-0" href="index.html"><img alt="Boxship PTY" class="block h-auto max-h-10 md:max-h-12 w-auto max-w-[180px] object-contain" src="assets/horizontal.png"></a><nav aria-label="Navegación principal" class="hidden md:flex items-center gap-1"><a class="px-3 py-2 text-sm font-medium rounded-md transition-colors text-foreground/70 hover:text-primary hover:bg-muted" href="index.html">Inicio</a><a class="px-3 py-2 text-sm font-medium rounded-md transition-colors text-foreground/70 hover:text-primary hover:bg-muted" href="index.html#como-funciona">Cómo Funciona</a><a class="px-3 py-2 text-sm font-medium rounded-md transition-colors text-foreground/70 hover:text-primary hover:bg-muted" href="index.html#servicios">Servicios</a><a class="px-3 py-2 text-sm font-medium rounded-md transition-colors text-foreground/70 hover:text-primary hover:bg-muted" href="index.html#cobertura">Cobertura</a><a class="px-3 py-2 text-sm font-medium rounded-md transition-colors text-foreground/70 hover:text-primary hover:bg-muted" href="tarifas.html">Tarifas</a><a class="px-3 py-2 text-sm font-medium rounded-md transition-colors text-primary font-semibold" href="seguimiento.html">Seguimiento</a><a class="px-3 py-2 text-sm font-medium rounded-md transition-colors text-foreground/70 hover:text-primary hover:bg-muted" href="index.html#contacto">Contacto</a><a class="ml-3 px-4 py-2 bg-accent text-white text-sm font-semibold rounded-lg hover:bg-accent/90 transition-colors" href="https://wa.me/50764749872">Empieza ahora</a></nav><button class="md:hidden p-2 rounded-md text-foreground/70 hover:text-primary hover:bg-muted transition-colors" aria-label="Abrir menú"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-menu"><line x1="4" x2="20" y1="12" y2="12"></line><line x1="4" x2="20" y1="6" y2="6"></line><line x1="4" x2="20" y1="18" y2="18"></line></svg></button></div></div></header>
+<main class="flex-grow flex items-center justify-center py-12 px-4">
+  <div class="w-full max-w-2xl">
+    <div class="text-center mb-8">
+      <h1 class="text-3xl md:text-4xl font-extrabold text-foreground mb-3">Seguimiento de Paquete</h1>
+      <p class="text-muted-foreground text-lg">Ingresa tu número de tracking para conocer el estado de tu carga.</p>
+    </div>
+
+    <div class="bg-white rounded-2xl shadow-lg border border-border p-6 md:p-8">
+      <div class="flex flex-col sm:flex-row gap-3">
+        <input type="text" id="trackingInput" aria-label="Número de tracking" placeholder="Ej: TB082009234009..." maxlength="64" autocomplete="off" autocapitalize="off" spellcheck="false" class="flex-1 px-5 py-4 rounded-xl border border-border bg-muted/50 focus:outline-none focus:ring-2 focus:ring-primary text-foreground font-mono">
+        <button type="button" id="btnConsultar" class="px-8 py-4 rounded-xl font-bold text-white transition-all hover:opacity-90" style="background-color: hsl(var(--primary));">Consultar</button>
+      </div>
+      
+      <!-- Contenedor de Turnstile -->
+      <div id="turnstile-container" class="mt-4 flex justify-center"></div>
+      
+      <div id="historialBusquedas" class="search-history" style="display:none"></div>
+    </div>
+
+    <div id="loading" class="text-center mt-10" style="display: none;" role="status">
+      <div class="inline-block w-10 h-10 border-4 border-muted border-t-primary rounded-full animate-spin mb-4"></div>
+      <p class="text-muted-foreground font-medium">Consultando estado del paquete...</p>
+    </div>
+
+    <div id="error" class="mt-8 bg-red-50 border border-red-200 rounded-xl p-5 text-center" style="display: none;" role="alert">
+      <h3 class="text-red-700 font-bold mb-1">❌ Error en la consulta</h3>
+      <p id="mensajeError" class="text-red-600 text-sm"></p>
+    </div>
+
+    <div id="resultado" class="mt-8 space-y-6" style="display: none;" aria-live="polite">
+      <div class="bg-white rounded-2xl shadow-sm border border-border p-6 text-center">
+        <p class="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-2">Estado Actual</p>
+        <div id="estadoActual" class="status-badge"></div>
+        <p id="trackingId" class="font-mono text-sm text-muted-foreground"></p>
+      </div>
+
+      <div class="bg-white rounded-2xl shadow-sm border border-border p-6">
+        <h4 class="font-bold text-foreground mb-4 text-lg">Historial de Movimientos</h4>
+        <div id="historial" class="space-y-4"></div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer id="contacto" class="text-white" style="background: hsl(var(--primary));"><div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16"><div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10"><div class="lg:col-span-2"><div class="flex items-center gap-2 mb-4"><div class="w-9 h-9 rounded-lg flex items-center justify-center" style="background: hsl(var(--accent));"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-package text-white"><path d="M11 21.73a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73z"></path><path d="M12 22V12"></path><path d="m3.3 7 7.703 4.734a2 2 0 0 0 1.994 0L20.7 7"></path><path d="m7.5 4.27 9 5.15"></path></svg></div><span class="text-xl font-bold tracking-tight">Boxship PTY</span></div><p class="text-white/70 text-sm leading-relaxed max-w-xs">Tu casillero en USA para comprar en Amazon, eBay, SHEIN y más. Recibe tus paquetes en el este de Panamá con delivery gratis.</p><div class="mt-5 flex gap-3"><a href="#" aria-label="Facebook" class="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"><svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg></a><a href="#" aria-label="Instagram" class="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg></a><a href="#" aria-label="WhatsApp" class="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"><svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"></path></svg></a></div></div><div><h3 class="text-sm font-semibold uppercase tracking-wider text-white/50 mb-4">Navegación</h3><ul class="space-y-2"><li><a class="text-sm text-white/70 hover:text-white transition-colors" href="index.html">Inicio</a></li><li><a class="text-sm text-white/70 hover:text-white transition-colors" href="index.html#como-funciona">Cómo Funciona</a></li><li><a class="text-sm text-white/70 hover:text-white transition-colors" href="index.html#servicios">Servicios</a></li><li><a class="text-sm text-white/70 hover:text-white transition-colors" href="index.html#cobertura">Cobertura</a></li><li><a class="text-sm text-white/70 hover:text-white transition-colors" href="tarifas.html">Tarifas</a></li><li><a class="text-sm text-white/70 hover:text-white transition-colors" href="seguimiento.html">Seguimiento</a></li><li><a class="text-sm text-white/70 hover:text-white transition-colors" href="index.html#contacto">Contacto</a></li></ul></div><div><h3 class="text-sm font-semibold uppercase tracking-wider text-white/50 mb-4">Contacto</h3><ul class="space-y-3"><li class="flex items-start gap-2.5"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-map-pin text-accent mt-0.5 shrink-0"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"></path><circle cx="12" cy="10" r="3"></circle></svg><span class="text-sm text-white/70">Este de Panamá — Nuevo Tocumen, 24 de Diciembre, Pacora, Las Garzas, Cabra</span></li><li class="flex items-center gap-2.5"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-phone text-accent shrink-0"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg><a href="https://wa.me/50764749872" class="text-sm text-white/70 hover:text-white transition-colors">6474-9872</a></li><li class="flex items-center gap-2.5"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-mail text-accent shrink-0"><rect width="20" height="16" x="2" y="4" rx="2"></rect><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path></svg><a href="https://wa.me/50764749872" class="text-sm text-white/70 hover:text-white transition-colors">WhatsApp: 6474-9872</a></li></ul></div></div><div class="mt-10 pt-6 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-3"><p class="text-xs text-white/40">© 2026 Boxship PTY. Todos los derechos reservados.</p><p class="text-xs text-white/40">Delivery gratis en el este de Panamá</p></div></div></footer>
+<a href="https://wa.me/50764749872" target="_blank" rel="noopener noreferrer" aria-label="Contactar por WhatsApp" class="fixed bottom-6 right-6 z-50 flex items-center justify-center w-14 h-14 rounded-full shadow-lg transition-all hover:scale-110 hover:shadow-xl" style="background: rgb(37, 211, 102);"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-message-circle text-white"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"></path></svg></a>
+<script>
+(function(){
+  var btn=document.querySelector('button[aria-label="Abrir menú"]');
+  var nav=document.querySelector('header nav');
+  if(!btn||!nav)return;
+  var m=document.createElement('div');m.id='mnav';
+  nav.querySelectorAll('a').forEach(function(a){m.appendChild(a.cloneNode(true))});
+  document.querySelector('header').appendChild(m);
+  btn.addEventListener('click',function(){m.classList.toggle('open')});
+  m.addEventListener('click',function(e){if(e.target.tagName==='A')m.classList.remove('open')});
+})();
+</script>
+<script src="script.js"></script>
+</body>
+</html>
