@@ -11,9 +11,10 @@ const ESTADOS_ESPANOL = {
 const BODEGA_MIAMI = ESTADOS_ESPANOL.RECEIVED;
 const BODEGA_PANAMA = ESTADOS_ESPANOL.WAREHOUSED;
 
+// Ruta correcta para Cloudflare Pages
 const API_CONFIG = { endpoint: '/tracking', timeoutMs: 15000 };
 
-// ⚠️ REEMPLAZA ESTO CON TU SITE KEY PÚBLICA DE TURNSTILE (empieza con 0x)
+// ⚠️ PON AQUÍ TU SITE KEY PÚBLICA DE CLOUDFLARE TURNSTILE (Empieza con 0x)
 const TURNSTILE_SITE_KEY = 'TU_SITE_KEY_AQUI'; 
 
 const HISTORY_KEY = 'boxship_historial';
@@ -26,7 +27,7 @@ const ID_PATTERN = /^[\w.\-]{3,64}$/;
 const $ = (id) => document.getElementById(id);
 let turnstileWidgetId = null;
 
-// ===== HISTORIAL Y CACHÉ (se mantiene igual) =====
+// ===== HISTORIAL Y CACHÉ =====
 function leerHistorial() { try { return JSON.parse(localStorage.getItem(HISTORY_KEY)) || []; } catch { return []; } }
 function guardarEnHistorial(id) {
   const h = leerHistorial().filter((x) => x !== id);
@@ -68,7 +69,7 @@ function renderHistorialBusquedas() {
   cont.style.display = 'flex';
 }
 
-// ===== CONSULTA PRINCIPAL CON TURNSTILE =====
+// ===== CONSULTA PRINCIPAL =====
 let consultando = false;
 
 async function consultarTracking(forzar = false) {
@@ -86,21 +87,18 @@ async function consultarTracking(forzar = false) {
     if (cacheado) { mostrarResultado(cacheado); guardarEnHistorial(trackingId); return; }
   }
 
-  // PROTECCIÓN 1: Verificar que la librería de Turnstile exista
+  // PROTECCIÓN TURNSTILE
   if (typeof turnstile === 'undefined') {
-    mostrarError('El sistema de seguridad está bloqueado o no cargó. Desactiva tu bloqueador de anuncios y recarga la página.');
+    mostrarError('El sistema de seguridad está bloqueado. Desactiva tu bloqueador y recarga.');
     return;
   }
-
-  // PROTECCIÓN 2: Verificar que el widget esté renderizado
   if (!turnstileWidgetId) {
-    mostrarError('El sistema de seguridad aún no está listo. Espera un momento e intenta de nuevo.');
+    mostrarError('El sistema de seguridad aún no está listo. Espera un momento.');
     return;
   }
-
   const turnstileToken = turnstile.getResponse(turnstileWidgetId);
   if (!turnstileToken) {
-    mostrarError('Por favor, completa la verificación de seguridad (la casilla de Cloudflare).');
+    mostrarError('Por favor, completa la verificación de seguridad (la casilla).');
     return;
   }
 
@@ -122,7 +120,7 @@ async function consultarTracking(forzar = false) {
 
     let datos;
     try { datos = await respuesta.json(); }
-    catch { mostrarError('El servicio no está disponible por ahora. Intenta más tarde.'); return; }
+    catch { mostrarError('El servicio no está disponible por ahora.'); return; }
 
     if (datos.error || datos.code !== 200 || !datos.data) {
       manejarError(datos);
@@ -132,14 +130,12 @@ async function consultarTracking(forzar = false) {
       guardarEnHistorial(trackingId);
     }
   } catch (error) {
-    console.error('Error:', error);
     mostrarError(error.name === 'AbortError' ? 'La consulta tardó demasiado.' : 'Error de conexión.');
   } finally {
     clearTimeout(timer);
     consultando = false;
     setBotonEstado(false);
     ocultarLoading();
-    // Renovar el token de Turnstile para el próximo intento
     if (turnstileWidgetId && typeof turnstile !== 'undefined') turnstile.reset(turnstileWidgetId);
   }
 }
@@ -205,7 +201,7 @@ function formatearFecha(fechaString) {
   return new Date(t).toLocaleString('es-PA', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
 }
 
-// ===== INICIO Y RENDERIZADO DE TURNSTILE =====
+// ===== INICIO =====
 document.addEventListener('DOMContentLoaded', () => {
   $('btnConsultar').addEventListener('click', () => consultarTracking());
   $('trackingInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') consultarTracking(); });
@@ -218,7 +214,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (cacheado) mostrarResultado(cacheado);
   }
 
-  // Renderizar Turnstile de forma segura
   if (typeof turnstile !== 'undefined') {
     turnstile.ready(() => {
       if (TURNSTILE_SITE_KEY === 'TU_SITE_KEY_AQUI') {
@@ -231,6 +226,6 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     });
   } else {
-    mostrarError('No se pudo cargar el sistema de seguridad de Cloudflare. Revisa tu conexión o bloqueador de anuncios.');
+    mostrarError('No se pudo cargar el sistema de seguridad de Cloudflare.');
   }
 });
