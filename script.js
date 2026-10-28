@@ -214,18 +214,17 @@ document.addEventListener('DOMContentLoaded', () => {
     if (cacheado) mostrarResultado(cacheado);
   }
 
-  if (typeof turnstile !== 'undefined') {
-    turnstile.ready(() => {
-      if (TURNSTILE_SITE_KEY === 'TU_SITE_KEY_AQUI') {
-        mostrarError('Falta configurar la Site Key de Turnstile en el código.');
-        return;
-      }
-      turnstileWidgetId = turnstile.render('#turnstile-container', {
-        sitekey: TURNSTILE_SITE_KEY,
-        theme: 'light',
+  // Inicialización de Turnstile con un pequeño retraso para asegurar que el script cargó
+  setTimeout(() => {
+    if (typeof turnstile !== 'undefined') {
+      turnstile.ready(() => {
+        turnstileWidgetId = turnstile.render('#turnstile-container', {
+          sitekey: TURNSTILE_SITE_KEY,
+          theme: 'light',
+        });
       });
-    });
-  } else {
-    mostrarError('No se pudo cargar el sistema de seguridad de Cloudflare.');
-  }
+    } else {
+      mostrarError('No se pudo cargar el sistema de seguridad de Cloudflare. Revisa tu bloqueador de anuncios.');
+    }
+  }, 500);
 });
