@@ -11,11 +11,7 @@ const ESTADOS_ESPANOL = {
 const BODEGA_MIAMI = ESTADOS_ESPANOL.RECEIVED;
 const BODEGA_PANAMA = ESTADOS_ESPANOL.WAREHOUSED;
 
-// Ruta correcta para Cloudflare Pages
 const API_CONFIG = { endpoint: '/tracking', timeoutMs: 15000 };
-
-// ⚠️ PON AQUÍ TU SITE KEY PÚBLICA DE CLOUDFLARE TURNSTILE (Empieza con 0x)
-const TURNSTILE_SITE_KEY = '0x4AAAAAAFqPqnve1lLnkYJQ'; 
 
 const HISTORY_KEY = 'boxship_historial';
 const LAST_KEY = 'boxship_ultimo';
@@ -25,7 +21,6 @@ const MAX_HISTORY = 10;
 const ID_PATTERN = /^[\w.\-]{3,64}$/;
 
 const $ = (id) => document.getElementById(id);
-let turnstileWidgetId = null;
 
 // ===== HISTORIAL Y CACHÉ =====
 function leerHistorial() { try { return JSON.parse(localStorage.getItem(HISTORY_KEY)) || []; } catch { return []; } }
@@ -87,16 +82,10 @@ async function consultarTracking(forzar = false) {
     if (cacheado) { mostrarResultado(cacheado); guardarEnHistorial(trackingId); return; }
   }
 
-  // PROTECCIÓN TURNSTILE
-  if (typeof turnstile === 'undefined') {
-    mostrarError('El sistema de seguridad está bloqueado. Desactiva tu bloqueador y recarga.');
-    return;
-  }
-  if (!turnstileWidgetId) {
-    mostrarError('El sistema de seguridad aún no está listo. Espera un momento.');
-    return;
-  }
-  const turnstileToken = turnstile.getResponse(turnstileWidgetId);
+  // Leer el token de Turnstile del HTML
+  const turnstileResponse = document.querySelector('[name="cf-turnstile-response"]');
+  const turnstileToken = turnstileResponse ? turnstileResponse.value : '';
+
   if (!turnstileToken) {
     mostrarError('Por favor, completa la verificación de seguridad (la casilla).');
     return;
@@ -136,7 +125,8 @@ async function consultarTracking(forzar = false) {
     consultando = false;
     setBotonEstado(false);
     ocultarLoading();
-    if (turnstileWidgetId && typeof turnstile !== 'undefined') turnstile.reset(turnstileWidgetId);
+    // Resetear Turnstile para el próximo intento
+    if (typeof turnstile !== 'undefined') turnstile.reset();
   }
 }
 
@@ -213,18 +203,4 @@ document.addEventListener('DOMContentLoaded', () => {
     const cacheado = leerCache(ultimo);
     if (cacheado) mostrarResultado(cacheado);
   }
-
-  // Inicialización de Turnstile con un pequeño retraso para asegurar que el script cargó
-  setTimeout(() => {
-    if (typeof turnstile !== 'undefined') {
-      turnstile.ready(() => {
-        turnstileWidgetId = turnstile.render('#turnstile-container', {
-          sitekey: TURNSTILE_SITE_KEY,
-          theme: 'light',
-        });
-      });
-    } else {
-      mostrarError('No se pudo cargar el sistema de seguridad de Cloudflare. Revisa tu bloqueador de anuncios.');
-    }
-  }, 500);
 });
