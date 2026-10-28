@@ -15,7 +15,7 @@ const BODEGA_PANAMA = ESTADOS_ESPANOL.WAREHOUSED;
 const API_CONFIG = { endpoint: '/tracking', timeoutMs: 15000 };
 
 // ⚠️ PON AQUÍ TU SITE KEY PÚBLICA DE CLOUDFLARE TURNSTILE (Empieza con 0x)
-const TURNSTILE_SITE_KEY = 'TU_SITE_KEY_AQUI'; 
+const TURNSTILE_SITE_KEY = 'elz_03xSzdJ7l_-8kbcvg5qLebaUhB0Gr46zjZEenVnEmss'; 
 
 const HISTORY_KEY = 'boxship_historial';
 const LAST_KEY = 'boxship_ultimo';
